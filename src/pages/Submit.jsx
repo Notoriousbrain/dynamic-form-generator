@@ -83,6 +83,8 @@ const Submit = () => {
                   className="h-10 block w-full outline-none shadow-sm"
                   placeholder={field.label}
                   name={camelize(field.label)}
+                  minLength={field.min_char}
+                  maxLength={field.max_char}
                 />
               )}
               {field.question_type === "paragraph" && (
@@ -91,12 +93,14 @@ const Submit = () => {
                   className="h-8 block w-full outline-none shadow-sm"
                   placeholder={field.label}
                   name={camelize(field.label)}
+                  minLength={field.min_char}
+                  maxLength={field.max_char}
                 />
               )}
               {field.question_type === "dropdown" && (
                 <select
                   name={camelize(field.label)}
-                 className="shadow-sm outline-none rounded-md flex flex-col w-full "
+                  className="shadow-sm outline-none rounded-md flex flex-col w-full "
                 >
                   {field.list.map((item) => (
                     <option key={item} value={item}>

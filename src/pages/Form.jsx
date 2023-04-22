@@ -3,6 +3,7 @@ import { IconClose, IconDelete, IconMoreVertical } from "@arco-design/web-react/
 import firebase from "firebase/compat/app";
 import "firebase/compat/database";
 import { useLocation, useNavigate } from "react-router-dom";
+import axios from "axios";
 
 
 const Form = () => {
@@ -15,8 +16,8 @@ const Form = () => {
   const [onEdit, setOnEdit] = useState(false);
   const [isRequired, setIsRequired] = useState(false);
   const [validation, setValidation] = useState(false);
-  const [maxChar, setMaxChar] = useState(200);
-  const [minChar, setMinChar] = useState(0);
+  const [maxChar, setMaxChar] = useState();
+  const [minChar, setMinChar] = useState();
   const [onTitleEdit, setOnTitleEdit] = useState(false);
   const [onDescEdit, setOnDescEdit] = useState(false);
   const [textField, setTextField] = useState("");
@@ -34,6 +35,8 @@ const Form = () => {
       max_char: maxChar,
       min_char: minChar,
       question_type: "short_answer",
+      isQuestionOpen: false,
+      validation: false,
       list: [],
     },
   ]);
@@ -74,10 +77,13 @@ firebase.initializeApp(firebaseConfig);
 
   const addQuestions = () => {
     const field = {
+      id: `${formContent.length}`,
       name: `question_${formContent.length}`,
       label: "Untitled question",
       required: false,
       question_type: "short_answer",
+      isQuestionOpen: false,
+      validation: false,
       list: [],
     };
     setFormContent([...formContent, field]);
@@ -143,24 +149,36 @@ const editRequired = (fieldName, value) => {
     }
   };
 
-  // // Get a reference to the database service
-  // const database = firebase.database();
-
   // Send data to Firebase
 function formData() {
   console.log("Success")
+  const cleanFormContent = formContent.map((field) => ({
+    ...field,
+    isQuestionOpen: false,
+    validation: false,
+  }));
   const data = {
-    formContent,
+    formContent: cleanFormContent,
     formTitle,
     formDesc,
     id,
   };
   console.log(data);
-  navigate('/');
-  const newPostKey = firebase.database().ref().child("forms").push().key;
-  const updates = {};
-  updates["/forms/" + newPostKey] = data;
-  return firebase.database().ref().update(updates);
+   axios
+     .post(
+       "https://form-builder-53ce7-default-rtdb.asia-southeast1.firebasedatabase.app/forms.json",
+       data
+     )
+     .then((response) => {
+       console.log(
+         "Form data has been successfully submitted to Firebase!",
+         response
+       );
+     })
+     .then(navigate("/"))
+     .catch((error) => {
+       console.error("Error submitting form data to Firebase:", error);
+     });
 }
 
 const conditionHandler = () => {
