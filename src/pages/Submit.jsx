@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 
@@ -13,6 +13,13 @@ const Submit = () => {
   const navigate = useNavigate();
   const { state } = useLocation();
   const { title, description, formContent } = state;
+   const [inputValue, setInputValue] = useState("");
+
+     const handleInputChange = (event) => {
+       setInputValue(event.target.value);
+     };
+
+     const numCharsFilled = inputValue.length;
  
 
  const submitForm = (e) => {
@@ -21,6 +28,7 @@ const Submit = () => {
    //loop through our questions & get values based on the element name
    const formTargets = e.target;
    let data = [];
+   let requiredFieldsFilled = true;
    formContent.map((content, i) => {
      const element = camelize(content.label);
      const newItem = {
@@ -28,8 +36,24 @@ const Submit = () => {
        question: content.label,
        answer: formTargets[element].value,
      };
+       if (content.required && !newItem.answer) {
+         // Set requiredFieldsFilled to false if a required field is not filled
+         requiredFieldsFilled = false;
+         // Highlight the required field that is not filled (you can add your own CSS class here)
+         formTargets[element].style.border = "2px solid red";
+       } else {
+         // Remove any existing highlight from the field
+         formTargets[element].style.border = "none";
+       }
      return data.push(newItem);
    });
+
+   
+  if (!requiredFieldsFilled) {
+    // Show an alert if a required field is not filled
+    // alert("Please fill in all required fields!");
+    return;
+  }
 
    // Post request to Firebase
    axios
@@ -73,29 +97,44 @@ const Submit = () => {
                 className="text-lg font-medium text-gray-700 capitalize w-full"
               >
                 <label>{field.label}</label>
+                {field.required && <span className="text-red-600 ml-2">*</span>}
               </div>
             </div>
 
             <div className="my-4">
               {field.question_type === "short_answer" && (
-                <input
-                  type="text"
-                  className="h-10 block w-full outline-none shadow-sm"
-                  placeholder={field.label}
-                  name={camelize(field.label)}
-                  minLength={field.min_char}
-                  maxLength={field.max_char}
-                />
+                <>
+                  <input
+                    type="text"
+                    className="h-10 block w-full outline-none shadow-sm"
+                    placeholder={field.label}
+                    name={camelize(field.label)}
+                    minLength={field.min_char}
+                    maxLength={field.max_char}
+                    onChange={handleInputChange}
+                  />
+                  {field.max_char && (
+                    <div className="flex justify-end text-gray-500 text-sm">
+                      {numCharsFilled}/{field.max_char}
+                    </div>
+                  )}
+                </>
               )}
               {field.question_type === "paragraph" && (
-                <textarea
-                  rows={4}
-                  className="h-8 block w-full outline-none shadow-sm"
-                  placeholder={field.label}
-                  name={camelize(field.label)}
-                  minLength={field.min_char}
-                  maxLength={field.max_char}
-                />
+                <>
+                  <textarea
+                    rows={4}
+                    className="h-8 block w-full outline-none shadow-sm"
+                    placeholder={field.label}
+                    name={camelize(field.label)}
+                    minLength={field.min_char}
+                    maxLength={field.max_char}
+                    onChange={handleInputChange}
+                  />
+                  <div className="flex justify-end text-gray-500 text-sm">
+                    {numCharsFilled}/{field.max_char}
+                  </div>
+                </>
               )}
               {field.question_type === "dropdown" && (
                 <select

@@ -1,10 +1,11 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 
 const FormCard = ({ cardKey, id, formKey, formContent, form, title, description }) => {
     const navigate = useNavigate();
+     const [forms, setForms] = useState(formContent);
 
     const baseUrl =
       "https://form-builder-53ce7-default-rtdb.asia-southeast1.firebasedatabase.app";
@@ -23,6 +24,7 @@ const FormCard = ({ cardKey, id, formKey, formContent, form, title, description 
      axios
        .delete(`${baseUrl}/${formsCollection}/${documentId}.json`)
        .then((response) => {
+         setForms(forms.filter((form) => form.formKey !== formKey));
          console.log("Document deleted successfully", response);
        })
        .then(

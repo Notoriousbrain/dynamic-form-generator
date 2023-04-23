@@ -2,12 +2,13 @@ import React, { useState, useEffect} from 'react'
 import { useNavigate } from 'react-router-dom'
 import uuid from 'react-uuid';
 import axios from 'axios';
-import { FormCard } from '../components';
+import { FormCard, Loader } from '../components';
 
 const Home = () => {
     const navigate = useNavigate();
     const id = uuid();
     const [form, setForm] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
     const [formKey, setFormKey] = useState([]);
 
     const submitHandler = () => {
@@ -21,8 +22,10 @@ useEffect(() => {
         "https://form-builder-53ce7-default-rtdb.asia-southeast1.firebasedatabase.app/forms.json"
       );
       if (data) {
+        setIsLoading(true);
         setForm(Object.values(data));
         setFormKey(Object.keys(data));
+        setIsLoading(false);
       } else {
         console.error("Error: No data returned from server");
       }
@@ -37,7 +40,8 @@ useEffect(() => {
 
   return (
     <div className=" flex justify-center mt-10 px-4 ">
-      <div className="bg-white w-full pt-3 pb-10 px-5 ">
+    {isLoading ? ( <Loader />) : ( 
+    <div className="bg-white w-full pt-3 pb-10 px-5 ">
         <h1 className="text-3xl font-semibold mt-4 mb-6">
           Create a dynamic form{" "}
         </h1>
@@ -63,7 +67,7 @@ useEffect(() => {
             Create
           </button>
         </div>
-      </div>
+      </div>) }
     </div>
   );
 }

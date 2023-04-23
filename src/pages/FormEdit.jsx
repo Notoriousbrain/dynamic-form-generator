@@ -3,9 +3,7 @@ import {
   IconClose,
   IconDelete,
 } from "@arco-design/web-react/icon";
-import firebase from "firebase/compat/app";
 import axios from "axios";
-import "firebase/compat/database";
 import { useLocation, useNavigate } from "react-router-dom";
 
 const FormEdit = () => {
@@ -60,19 +58,6 @@ const FormEdit = () => {
   useEffect(() => {
     !checked ? setIsRequired(true) : setIsRequired(false);
   }, [checked]);
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyCSb_eSQQJk7o_12aHRNI8sla15xrRdEb8",
-    authDomain: "form-builder-53ce7.firebaseapp.com",
-    databaseURL:
-      "https://form-builder-53ce7-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "form-builder-53ce7",
-    storageBucket: "form-builder-53ce7.appspot.com",
-    messagingSenderId: "855188196860",
-    appId: "1:855188196860:web:28a602f317642cd22af679",
-    measurementId: "G-5B7WCEG8XZ",
-  };
-  firebase.initializeApp(firebaseConfig);
 
   const addQuestions = () => {
     const field = {
@@ -159,7 +144,7 @@ const FormEdit = () => {
         console.log(response.data);
         return response.data;
       })
-      .then(navigate("/"))
+      .then(navigate(`/`))
       .catch((error) => console.error(error));
   };
 
@@ -274,7 +259,8 @@ const FormEdit = () => {
                   if (field.id === fieldId) {
                     return {
                       ...field,
-                      isQuestionOpen: !field.isQuestionOpen,
+                      isQuestionOpen: true,
+                      validation: false
                     };
                   } else {
                     return {
@@ -292,175 +278,177 @@ const FormEdit = () => {
                   key={field.name}
                   className=" mt-3 shadow-md bg-white pt-6 pb-8 px-6 rounded-xl "
                 >
-                  <div
-                    onClick={() => questionHandler(field.id)}
-                    className="flex justify-between items-center"
-                  >
+                  <div onClick={() => questionHandler(field.id)}>
                     <div
-                      key={field.name}
-                      className="text-lg font-medium text-gray-700 capitalize w-full"
+                      // onClick={() => questionHandler(field.id)}
+                      className="flex justify-between items-center"
                     >
-                      {onEdit && editedField === field.name ? (
+                      <div
+                        key={field.name}
+                        className="text-lg font-medium text-gray-700 capitalize w-full"
+                      >
+                        {onEdit && editedField === field.name ? (
+                          <input
+                            type="text"
+                            value={field.label}
+                            className="outline-none w-4/5 pb-1 border-b"
+                            onChange={(e) =>
+                              editField(field.name, e.target.value)
+                            }
+                            onBlur={() => {
+                              setOnEdit(false);
+                              setEditedField("");
+                            }}
+                          />
+                        ) : (
+                          <label
+                            onClick={() => {
+                              setOnEdit(true);
+                              setEditedField(field.name);
+                            }}
+                          >
+                            {field.label}
+                          </label>
+                        )}
+                      </div>
+
+                      <div className="w-[17%]">
+                        <select
+                          onChange={(e) =>
+                            editFieldType(field.name, e.target.value)
+                          }
+                          className="outline-none border rounded-md text-md py-1 pl-1 w-full"
+                          value={field.question_type}
+                        >
+                          <option value="short_answer">Short Answer</option>
+                          <option value="paragraph">Paragraph</option>
+                          <option value="radio">Multi Choice</option>
+                          <option value="checkbox">Check Box</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div
+                      // onClick={() => questionHandler(field.id)}
+                      className="my-4"
+                    >
+                      {field.question_type === "short_answer" && (
                         <input
                           type="text"
-                          value={field.label}
-                          className="outline-none w-4/5 pb-1 border-b"
-                          onChange={(e) =>
-                            editField(field.name, e.target.value)
-                          }
-                          onBlur={() => {
-                            setOnEdit(false);
-                            setEditedField("");
-                          }}
+                          className="h-10 block w-full outline-none shadow-sm"
+                          placeholder="Enter the answer here"
+                          disabled
                         />
-                      ) : (
-                        <label
-                          onClick={() => {
-                            setOnEdit(true);
-                            setEditedField(field.name);
-                          }}
-                        >
-                          {field.label}
-                        </label>
+                      )}
+                      {field.question_type === "paragraph" && (
+                        <textarea
+                          rows={4}
+                          className="h-8 block w-full outline-none shadow-sm"
+                          placeholder="Enter the answer here"
+                          disabled
+                        />
+                      )}
+                      {field.question_type === "dropdown" && (
+                        <div className="my-4 flex flex-col space-y-2">
+                          <select className="shadow-sm outline-none rounded-md flex flex-col w-full ">
+                            {field.list.map((item) => (
+                              <option key={item} value={item}>
+                                {item}
+                              </option>
+                            ))}
+                          </select>
+                          <div className="flex space-between">
+                            <input
+                              type="text"
+                              onChange={(e) => setTextField(e.target.value)}
+                              value={textField}
+                              placeholder="Add an option"
+                              className="flex-1 py-2 outline-none border-b"
+                            />
+                            <button
+                              className="bg-blue-700 block text-white px-4 rounded-md"
+                              onClick={() =>
+                                addFieldOption(field.name, textField)
+                              }
+                            >
+                              Add
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                      {field.question_type === "radio" && (
+                        <div className="my-4 flex flex-col space-y-2">
+                          <div className="shadow-sm outline-none rounded-md flex flex-col w-full">
+                            {field.list.map((item, i) => (
+                              <label key={item}>
+                                <input
+                                  type="radio"
+                                  key={i}
+                                  value={item}
+                                  className="mr-3"
+                                  disabled
+                                />
+                                {item}
+                              </label>
+                            ))}
+                          </div>
+
+                          <div className="w-full flex justify-between">
+                            <input
+                              type="text"
+                              onChange={(e) => setTextField(e.target.value)}
+                              value={textField}
+                              placeholder="Add an option"
+                              className="flex-1 outline-none border-b"
+                            />
+                            <button
+                              onClick={() =>
+                                addFieldOption(field.name, textField)
+                              }
+                              className="bg-blue-700 text-white py-1 rounded-md px-4 ml-2"
+                            >
+                              Add
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                      {field.question_type === "checkbox" && (
+                        <div className="my-4 flex flex-col space-y-2">
+                          <div className="shadow-sm outline-none rounded-md flex flex-col w-full">
+                            {field.list.map((item) => (
+                              <label key={item}>
+                                <input
+                                  type="checkbox"
+                                  key={item}
+                                  value={item}
+                                  className="mr-3"
+                                  disabled
+                                />
+                                {item}
+                              </label>
+                            ))}
+                          </div>
+
+                          <div className="w-full flex justify-between">
+                            <input
+                              type="text"
+                              onChange={(e) => setTextField(e.target.value)}
+                              value={textField}
+                              placeholder="Add an option"
+                              className="flex-1 outline-none border-b"
+                            />
+                            <button
+                              onClick={() =>
+                                addFieldOption(field.name, textField)
+                              }
+                              className="bg-blue-700 text-white py-1 rounded-md px-4 ml-2"
+                            >
+                              Add
+                            </button>
+                          </div>
+                        </div>
                       )}
                     </div>
-
-                    <div className="w-[17%]">
-                      <select
-                        onChange={(e) =>
-                          editFieldType(field.name, e.target.value)
-                        }
-                        className="outline-none border rounded-md text-md py-1 pl-1 w-full"
-                        value={field.question_type}
-                      >
-                        <option value="short_answer">Short Answer</option>
-                        <option value="paragraph">Paragraph</option>
-                        <option value="radio">Multi Choice</option>
-                        <option value="checkbox">Check Box</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div
-                    onClick={() => questionHandler(field.id)}
-                    className="my-4"
-                  >
-                    {field.question_type === "short_answer" && (
-                      <input
-                        type="text"
-                        className="h-10 block w-full outline-none shadow-sm"
-                        placeholder="Enter the answer here"
-                        disabled
-                      />
-                    )}
-                    {field.question_type === "paragraph" && (
-                      <textarea
-                        rows={4}
-                        className="h-8 block w-full outline-none shadow-sm"
-                        placeholder="Enter the answer here"
-                        disabled
-                      />
-                    )}
-                    {field.question_type === "dropdown" && (
-                      <div className="my-4 flex flex-col space-y-2">
-                        <select className="shadow-sm outline-none rounded-md flex flex-col w-full ">
-                          {field.list.map((item) => (
-                            <option key={item} value={item}>
-                              {item}
-                            </option>
-                          ))}
-                        </select>
-                        <div className="flex space-between">
-                          <input
-                            type="text"
-                            onChange={(e) => setTextField(e.target.value)}
-                            value={textField}
-                            placeholder="Add an option"
-                            className="flex-1 py-2 outline-none border-b"
-                          />
-                          <button
-                            className="bg-blue-700 block text-white px-4 rounded-md"
-                            onClick={() =>
-                              addFieldOption(field.name, textField)
-                            }
-                          >
-                            Add
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                    {field.question_type === "radio" && (
-                      <div className="my-4 flex flex-col space-y-2">
-                        <div className="shadow-sm outline-none rounded-md flex flex-col w-full">
-                          {field.list.map((item, i) => (
-                            <label key={item}>
-                              <input
-                                type="radio"
-                                key={i}
-                                value={item}
-                                className="mr-3"
-                                disabled
-                              />
-                              {item}
-                            </label>
-                          ))}
-                        </div>
-
-                        <div className="w-full flex justify-between">
-                          <input
-                            type="text"
-                            onChange={(e) => setTextField(e.target.value)}
-                            value={textField}
-                            placeholder="Add an option"
-                            className="flex-1 outline-none border-b"
-                          />
-                          <button
-                            onClick={() =>
-                              addFieldOption(field.name, textField)
-                            }
-                            className="bg-blue-700 text-white py-1 rounded-md px-4 ml-2"
-                          >
-                            Add
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                    {field.question_type === "checkbox" && (
-                      <div className="my-4 flex flex-col space-y-2">
-                        <div className="shadow-sm outline-none rounded-md flex flex-col w-full">
-                          {field.list.map((item) => (
-                            <label key={item}>
-                              <input
-                                type="checkbox"
-                                key={item}
-                                value={item}
-                                className="mr-3"
-                                disabled
-                              />
-                              {item}
-                            </label>
-                          ))}
-                        </div>
-
-                        <div className="w-full flex justify-between">
-                          <input
-                            type="text"
-                            onChange={(e) => setTextField(e.target.value)}
-                            value={textField}
-                            placeholder="Add an option"
-                            className="flex-1 outline-none border-b"
-                          />
-                          <button
-                            onClick={() =>
-                              addFieldOption(field.name, textField)
-                            }
-                            className="bg-blue-700 text-white py-1 rounded-md px-4 ml-2"
-                          >
-                            Add
-                          </button>
-                        </div>
-                      </div>
-                    )}
                   </div>
 
                   {field.validation && (
@@ -523,7 +511,9 @@ const FormEdit = () => {
                         >
                           <div
                             className={`w-5 h-5 bg-white shadow-black shadow-md rounded-full transition duration-300 transform ${
-                              field.required ? "translate-x-3" : "-translate-x-3"
+                              field.required
+                                ? "translate-x-3"
+                                : "-translate-x-3"
                             }`}
                           />
                         </label>
