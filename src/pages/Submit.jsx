@@ -29,29 +29,24 @@ const Submit = () => {
    const formTargets = e.target;
    let data = [];
    let requiredFieldsFilled = true;
-   formContent.map((content, i) => {
+   formContent && formContent.map((content, i) => {
      const element = camelize(content.label);
      const newItem = {
        key: i,
        question: content.label,
        answer: formTargets[element].value,
      };
-       if (content.required && !newItem.answer) {
-         // Set requiredFieldsFilled to false if a required field is not filled
+       if (content.required && newItem.answer.length === 0) {
+       
          requiredFieldsFilled = false;
-         // Highlight the required field that is not filled (you can add your own CSS class here)
-         formTargets[element].style.border = "2px solid red";
-       } else {
-         // Remove any existing highlight from the field
-         formTargets[element].style.border = "none";
+         console.log(requiredFieldsFilled)
        }
      return data.push(newItem);
    });
 
    
   if (!requiredFieldsFilled) {
-    // Show an alert if a required field is not filled
-    // alert("Please fill in all required fields!");
+    alert("Please fill in all required fields!");
     return;
   }
 
@@ -66,9 +61,9 @@ const Submit = () => {
          "Form data has been successfully submitted to Firebase!",
          response
        );
-     }).then(
-      navigate('/')
-     )
+     }).then(() => {
+      navigate('/');
+     })
      .catch((error) => {
        console.error("Error submitting form data to Firebase:", error);
      });
@@ -80,10 +75,10 @@ const Submit = () => {
       onSubmit={submitForm}
     >
       <div className="flex justify-center py-8">
-        <div className="w-4/5 flex flex-col mt-16">
+        <div className="w-4/5 sm:w-11/12 flex flex-col mt-16">
           <div className="flex flex-col bg-white pt-6 pb-8 px-6  rounded-xl shadow-md">
-          <h1 className="text-3xl text-black/80 mb-2">{title}</h1>
-          <p className="text-xl text-black/80">{description}</p>
+          <h1 className="text-3xl sm:text-2xl font-semibold text-black/80 mb-2">{title}</h1>
+          <p className="text-xl font-medium sm:text-lg text-black/80">{description}</p>
         </div>
       {formContent && formContent.map((field) => {
         return (
@@ -91,23 +86,23 @@ const Submit = () => {
             key={field.name}
             className=" mt-3 shadow-md bg-white pt-6 pb-8 px-6 rounded-xl "
           >
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between sm:flex-col">
               <div
                 key={field.name}
-                className="text-lg font-medium text-gray-700 capitalize w-full"
+                className="text-xl sm:text-lg font-medium text-gray-700 capitalize w-full flex flex-wrap"
               >
                 <label>{field.label}</label>
                 {field.required && <span className="text-red-600 ml-2">*</span>}
               </div>
             </div>
 
-            <div className="my-4">
+            <div className="my-2">
               {field.question_type === "short_answer" && (
                 <>
                   <input
                     type="text"
                     className="h-10 block w-full outline-none shadow-sm"
-                    placeholder={field.label}
+                    placeholder="Enter your answer here"
                     name={camelize(field.label)}
                     minLength={field.min_char}
                     maxLength={field.max_char}
@@ -131,9 +126,10 @@ const Submit = () => {
                     maxLength={field.max_char}
                     onChange={handleInputChange}
                   />
-                  <div className="flex justify-end text-gray-500 text-sm">
+                {field.max_char && (<div className="flex justify-end text-gray-500 text-sm">
                     {numCharsFilled}/{field.max_char}
                   </div>
+                  )}
                 </>
               )}
               {field.question_type === "dropdown" && (
@@ -152,7 +148,7 @@ const Submit = () => {
                 <div className="my-4 flex flex-col space-y-2">
                   <div className="shadow-sm outline-none rounded-md flex flex-col w-full">
                     {field.list.map((item) => (
-                      <label>
+                      <label key={item}>
                         <input
                           name={camelize(field.label)}
                           type="radio"
@@ -170,7 +166,7 @@ const Submit = () => {
                 <div className="my-4 flex flex-col space-y-2">
                   <div className="shadow-sm outline-none rounded-md flex flex-col w-full">
                     {field.list.map((item) => (
-                      <label>
+                      <label key={item}>
                         <input
                           name={camelize(field.label)}
                           type="checkbox"
@@ -192,7 +188,7 @@ const Submit = () => {
       <div className="flex justify-end mt-3 w-full ">
         <button
           type="submit"
-          className="bg-blue-700 py-2 text-white rounded-md w-32 text-lg"
+          className= "shadow-xl py-3 rounded-lg w-32 px-6 bg-blue-700 text-white text-lg xs:text-sm sm:text-base sm:px-4 xs:mb-2 font-semibold"
         >
           Submit
         </button>

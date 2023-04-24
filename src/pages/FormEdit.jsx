@@ -32,6 +32,7 @@ const FormEdit = () => {
       question_type: "short_answer",
       isQuestionOpen: false,
       validation: false,
+      addOption: false,
       list: [],
     },
   ]);
@@ -68,6 +69,7 @@ const FormEdit = () => {
       question_type: "short_answer",
       isQuestionOpen: false,
       validation: false,
+      addOption: false,
       list: [],
     };
     setFormContent([...formContent, field]);
@@ -152,6 +154,7 @@ const FormEdit = () => {
     ...field,
     isQuestionOpen: false,
     validation: false,
+    addOption: false,
   }));
 
   const newData = {
@@ -178,16 +181,34 @@ const FormEdit = () => {
     updateCharLimits(formContent[0].name, "min_char", parseInt(e.target.value));
   };
 
+  const baseUrl =
+    "https://form-builder-53ce7-default-rtdb.asia-southeast1.firebasedatabase.app";
+  const formsCollection = "forms";
+  const documentId = formKey;
+
+   const deleteHandler = () => {
+     axios
+       .delete(`${baseUrl}/${formsCollection}/${documentId}.json`)
+       .then((response) => {
+         console.log("Document deleted successfully", response);
+       })
+       .then(navigate("/"))
+       .then(console.log("Form deleted successfully"))
+       .catch((error) => {
+         console.error("Error deleting document", error);
+       });
+   };
+
 
   return (
     <div className="flex justify-center py-8">
-      <div className="w-4/5 flex flex-col mt-16">
-        <div className="flex flex-col bg-white pt-6 pb-8 px-6  rounded-xl shadow-md">
+      <div className="w-4/5 sm:w-11/12 flex flex-col mt-16">
+        <div className="flex flex-col bg-white pt-6 pb-8 px-6 rounded-xl shadow-md">
           {onTitleEdit ? (
             <input
               type="text"
               value={formTitle}
-              className="outline-none border-b text-3xl pb-3 text-black/60 mb-2"
+              className="outline-none border-b text-3xl sm:text-2xl sm:pb-1 pb-3 text-black/60 mb-2"
               onChange={(e) => setFormTitle(e.target.value)}
               onBlur={() => {
                 setOnTitleEdit(false);
@@ -195,7 +216,7 @@ const FormEdit = () => {
             />
           ) : (
             <label
-              className="text-3xl text-black/80 mb-2"
+              className="text-3xl sm:text-2xl font-semibold text-black/80 sm:mb-0 mb-2"
               onClick={() => {
                 setOnTitleEdit(true);
               }}
@@ -207,7 +228,7 @@ const FormEdit = () => {
             <input
               type="text"
               value={formDesc}
-              className="outline-none border-b text-xl pb-3 text-black/60"
+              className="outline-none border-b text-xl sm:text-lg pb-3 text-black/60"
               onChange={(e) => setFormDesc(e.target.value)}
               onBlur={() => {
                 setOnDescEdit(false);
@@ -215,7 +236,7 @@ const FormEdit = () => {
             />
           ) : (
             <label
-              className="text-xl text-black/80"
+              className="text-xl sm:text-lg font-medium text-black/80"
               onClick={() => {
                 setOnDescEdit(true);
               }}
@@ -236,21 +257,21 @@ const FormEdit = () => {
               };
 
               const validationHandler = (fieldId) => {
-                 const formFields = [...formContent];
-                 const updatedFormFields = formFields.map((field) => {
-                   if (field.id === fieldId) {
-                     return {
-                       ...field,
-                       validation: !field.validation,
-                     };
-                   } else {
-                     return {
-                       ...field,
-                       validation: false,
-                     };
-                   }
-                 });
-                 setFormContent(updatedFormFields);
+                const formFields = [...formContent];
+                const updatedFormFields = formFields.map((field) => {
+                  if (field.id === fieldId) {
+                    return {
+                      ...field,
+                      validation: !field.validation,
+                    };
+                  } else {
+                    return {
+                      ...field,
+                      validation: false,
+                    };
+                  }
+                });
+                setFormContent(updatedFormFields);
               };
 
               const questionHandler = (fieldId) => {
@@ -260,13 +281,15 @@ const FormEdit = () => {
                     return {
                       ...field,
                       isQuestionOpen: true,
-                      validation: false
+                      validation: false,
+                      addOption: true
                     };
                   } else {
                     return {
                       ...field,
                       isQuestionOpen: false,
-                      validation: false
+                      validation: false,
+                      addOption: false,
                     };
                   }
                 });
@@ -276,16 +299,16 @@ const FormEdit = () => {
               return (
                 <div
                   key={field.name}
-                  className=" mt-3 shadow-md bg-white pt-6 pb-8 px-6 rounded-xl "
+                  className=" mt-3 shadow-md bg-white pt-6 pb-8 px-6 sm:px-4 rounded-xl "
                 >
                   <div onClick={() => questionHandler(field.id)}>
                     <div
                       // onClick={() => questionHandler(field.id)}
-                      className="flex justify-between items-center"
+                      className="flex justify-between sm:flex-col "
                     >
                       <div
                         key={field.name}
-                        className="text-lg font-medium text-gray-700 capitalize w-full"
+                        className="text-xl sm:text-lg font-medium text-gray-700 capitalize md:w-[75%] w-[85%] sm:w-full flex flex-wrap"
                       >
                         {onEdit && editedField === field.name ? (
                           <input
@@ -312,12 +335,12 @@ const FormEdit = () => {
                         )}
                       </div>
 
-                      <div className="w-[17%]">
+                      <div className="text-md sm:text-sm sm:mt-2 ">
                         <select
                           onChange={(e) =>
                             editFieldType(field.name, e.target.value)
                           }
-                          className="outline-none border rounded-md text-md py-1 pl-1 w-full"
+                          className="outline-none border rounded-md py-1 pl-1"
                           value={field.question_type}
                         >
                           <option value="short_answer">Short Answer</option>
@@ -351,65 +374,71 @@ const FormEdit = () => {
                       {field.question_type === "dropdown" && (
                         <div className="my-4 flex flex-col space-y-2">
                           <select className="shadow-sm outline-none rounded-md flex flex-col w-full ">
-                            {field.list.map((item) => (
-                              <option key={item} value={item}>
-                                {item}
-                              </option>
-                            ))}
+                            {field.list &&
+                              field.list.map((item) => (
+                                <option key={item} value={item}>
+                                  {item}
+                                </option>
+                              ))}
                           </select>
-                          <div className="flex space-between">
-                            <input
-                              type="text"
-                              onChange={(e) => setTextField(e.target.value)}
-                              value={textField}
-                              placeholder="Add an option"
-                              className="flex-1 py-2 outline-none border-b"
-                            />
-                            <button
-                              className="bg-blue-700 block text-white px-4 rounded-md"
-                              onClick={() =>
-                                addFieldOption(field.name, textField)
-                              }
-                            >
-                              Add
-                            </button>
-                          </div>
+                          {field.addOption && (
+                            <div className="flex space-between">
+                              <input
+                                type="text"
+                                onChange={(e) => setTextField(e.target.value)}
+                                value={textField}
+                                placeholder="Add an option"
+                                className="flex-1 py-2 outline-none border-b"
+                              />
+                              <button
+                                className="bg-blue-700 block text-white px-4 rounded-md"
+                                onClick={() =>
+                                  addFieldOption(field.name, textField)
+                                }
+                              >
+                                Add
+                              </button>
+                            </div>
+                          )}
                         </div>
                       )}
                       {field.question_type === "radio" && (
                         <div className="my-4 flex flex-col space-y-2">
                           <div className="shadow-sm outline-none rounded-md flex flex-col w-full">
-                            {field.list.map((item, i) => (
-                              <label key={item}>
-                                <input
-                                  type="radio"
-                                  key={i}
-                                  value={item}
-                                  className="mr-3"
-                                  disabled
-                                />
-                                {item}
-                              </label>
-                            ))}
+                            {field.list &&
+                              field.list.map((item, i) => (
+                                <label key={item}>
+                                  <input
+                                    type="radio"
+                                    key={i}
+                                    value={item}
+                                    className="mr-3"
+                                    disabled
+                                  />
+                                  {item}
+                                </label>
+                              ))}
                           </div>
 
-                          <div className="w-full flex justify-between">
-                            <input
-                              type="text"
-                              onChange={(e) => setTextField(e.target.value)}
-                              value={textField}
-                              placeholder="Add an option"
-                              className="flex-1 outline-none border-b"
-                            />
-                            <button
-                              onClick={() =>
-                                addFieldOption(field.name, textField)
-                              }
-                              className="bg-blue-700 text-white py-1 rounded-md px-4 ml-2"
-                            >
-                              Add
-                            </button>
-                          </div>
+                          {field.addOption && (
+                            <div className="w-full flex justify-between">
+                              <input
+                                type="text"
+                                onChange={(e) => setTextField(e.target.value)}
+                                value={textField}
+                                placeholder="Add an option"
+                                className="flex-1 outline-none border-b"
+                              />
+                              <button
+                                onClick={() =>
+                                  addFieldOption(field.name, textField)
+                                }
+                                className="bg-blue-700 text-white py-1 rounded-md px-4 ml-2"
+                              >
+                                Add
+                              </button>
+                            </div>
+                          )}
                         </div>
                       )}
                       {field.question_type === "checkbox" && (
@@ -429,53 +458,54 @@ const FormEdit = () => {
                             ))}
                           </div>
 
-                          <div className="w-full flex justify-between">
-                            <input
-                              type="text"
-                              onChange={(e) => setTextField(e.target.value)}
-                              value={textField}
-                              placeholder="Add an option"
-                              className="flex-1 outline-none border-b"
-                            />
-                            <button
-                              onClick={() =>
-                                addFieldOption(field.name, textField)
-                              }
-                              className="bg-blue-700 text-white py-1 rounded-md px-4 ml-2"
-                            >
-                              Add
-                            </button>
-                          </div>
+                          {field.addOption && (
+                            <div className="w-full flex justify-between">
+                              <input
+                                type="text"
+                                onChange={(e) => setTextField(e.target.value)}
+                                value={textField}
+                                placeholder="Add an option"
+                                className="flex-1 outline-none border-b"
+                              />
+                              <button
+                                onClick={() =>
+                                  addFieldOption(field.name, textField)
+                                }
+                                className="bg-blue-700 text-white py-1 rounded-md px-4 ml-2"
+                              >
+                                Add
+                              </button>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
                   </div>
 
                   {field.validation && (
-                    <div className="flex  mb-4">
-                      <div className="flex">
+                    <div className="flex mb-4 ">
+                      <div className="flex w-full xs:flex-col">
                         {" "}
                         <input
                           type="text"
                           value={field.max_char}
                           placeholder="Maximum Characters"
-                          className="outline-none pb-1 border-b"
+                          className="outline-none pb-1 border-b w-1/4 md:w-1/3 sm:w-1/2 xs:w-full md:text-sm sm:text-xs"
                           onChange={maxCharHandler}
                         />
                         <input
                           type="text"
                           value={field.min_char}
                           placeholder="Minimum Characters"
-                          className="outline-none ml-4 mr-4 pb-1 border-b"
+                          className="outline-none ml-4 mr-4 sm:mr-2 sm:ml-2 pb-1 border-b w-1/4 md:w-1/3 sm:w-1/2 xs:w-full xs:ml-0 xs:mt-3 md:text-sm sm:text-xs"
                           onChange={minCharHandler}
                         />
                       </div>
                       <div>
                         <IconClose
                           onClick={() => validationHandler(field.id)}
+                          className="w-6 sm:w-5"
                           style={{
-                            width: 24,
-                            marginRight: 20,
                             cursor: "pointer",
                           }}
                         />
@@ -487,14 +517,15 @@ const FormEdit = () => {
                     <div className="flex justify-end">
                       <IconDelete
                         onClick={deleteHandler}
+                        className="w-6 sm:w-5"
                         style={{
-                          width: 24,
-                          marginRight: 20,
                           cursor: "pointer",
                         }}
                       />
-                      <div className="flex items-center mr-2 border-l border-gray-400 pl-5 pr-5">
-                        <p className="mr-4 font-semibold text-lg">Required</p>
+                      <div className="flex items-center mr-2 ml-5 sm:ml-2 sm:mr-1 border-l border-gray-400 pl-5 pr-5 sm:pr-2 sm:pl-2 xs:pr-1 xs:pl-1">
+                        <p className="mr-4 font-semibold text-lg sm:text-base xs:text-sm">
+                          Required
+                        </p>
                         <input
                           type="checkbox"
                           className="checkbox cursor-pointer hidden"
@@ -505,12 +536,12 @@ const FormEdit = () => {
                         />
                         <label
                           htmlFor="checkbox"
-                          className={`flex items-center justify-center w-10 h-3 rounded-full p-1 relative label ${
+                          className={`flex items-center justify-center w-10 h-3 sm:w-8 sm:h-2 xs:w-5 xs:h-1 rounded-full p-1 relative label ${
                             field.required ? "bg-blue-400" : "bg-gray-400"
                           } `}
                         >
                           <div
-                            className={`w-5 h-5 bg-white shadow-black shadow-md rounded-full transition duration-300 transform ${
+                            className={`w-5 h-5 sm:w-4 sm:h-4 xs:w-3 xs:h-3 bg-white shadow-black shadow-md rounded-full transition duration-300 transform ${
                               field.required
                                 ? "translate-x-3"
                                 : "-translate-x-3"
@@ -521,7 +552,7 @@ const FormEdit = () => {
 
                       <button
                         onClick={() => validationHandler(field.id)}
-                        className="font-semibold text-lg border px-2 py-1 rounded-lg"
+                        className="font-semibold text-lg sm:text-base xs:text-sm border px-2 py-1 sm:px-1 rounded-lg"
                       >
                         Condition
                       </button>
@@ -531,15 +562,21 @@ const FormEdit = () => {
               );
             })}
 
-          <div className=" mt-3 flex justify-between">
+          <div className=" mt-3 flex justify-between xs:flex-col">
             <button
               onClick={addQuestions}
-              className=" shadow-xl py-3 rounded-lg w-1/5 bg-blue-700 text-white text-lg font-semibold"
+              className=" shadow-xl py-3 rounded-lg px-6 bg-blue-700 text-white text-lg xs:text-sm xs:px-2 sm:text-base sm:px-4 xs:mb-2 font-semibold"
             >
               Add a Question
             </button>
+            <button
+              onClick={deleteHandler}
+              className=" shadow-xl py-3 rounded-lg px-6 bg-blue-700 text-white text-lg xs:text-sm xs:px-2 sm:text-base sm:px-4 xs:mb-2 font-semibold"
+            >
+              Delete
+            </button>
             <input
-              className=" shadow-xl py-3 rounded-lg w-1/5 bg-blue-700 text-white text-lg font-semibold"
+              className=" shadow-xl py-3 rounded-lg px-6 bg-blue-700 text-white text-lg xs:text-sm xs:px-2 sm:text-base sm:px-4 xs:mb-2 font-semibold"
               type="submit"
               value="Save"
               onClick={() => updateData(formKey, newData)}

@@ -10,6 +10,12 @@ module.exports = {
     fontFamily: {
       sans: ["Poppins", ...defaultTheme.fontFamily.sans],
     },
+    screens: {
+      lg: { max: "1800px" },
+      md: { max: "990px" },
+      sm: { max: "600px" },
+      xs: { max: "400px" },
+    },
   },
   plugins: [],
 };
