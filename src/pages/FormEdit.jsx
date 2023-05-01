@@ -48,7 +48,7 @@ const FormEdit = () => {
       }
     };
     fetchFormDetails();
-  }, []);
+  }, [formKey, formContent]);
 
   useEffect(() => {
     !checked ? setIsRequired(true) : setIsRequired(false);
@@ -79,7 +79,11 @@ const FormEdit = () => {
         console.log(response.data);
         return response.data;
       })
-      .then(navigate(`/`))
+      .then(
+        setTimeout(() => {
+          navigate("/");
+        }, 1000)
+      )
       .catch((error) => console.error(error));
   };
 
@@ -108,7 +112,11 @@ const FormEdit = () => {
        .then((response) => {
          console.log("Document deleted successfully", response);
        })
-       .then(navigate("/"))
+       .then(
+         setTimeout(() => {
+           navigate("/");
+         }, 1000)
+       )
        .then(console.log("Form deleted successfully"))
        .catch((error) => {
          console.error("Error deleting document", error);
